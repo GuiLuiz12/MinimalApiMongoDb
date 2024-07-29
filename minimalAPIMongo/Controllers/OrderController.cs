@@ -9,22 +9,22 @@ namespace minimalAPIMongo.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Produces("application/json")]
-    public class ProductController : ControllerBase
+    public class OrderController : ControllerBase
     {
-        private readonly IMongoCollection<Product> _product;
+        private readonly IMongoCollection<Order> _order;
 
-        public ProductController(MongoDbService mongoDbService)
+        public OrderController(MongoDbService mongoDbService)
         {
-            _product = mongoDbService.GetDatabase.GetCollection<Product>("product");
+            _order = mongoDbService.GetDatabase.GetCollection<Order>("order");
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Product>>> Get()
+        public async Task<ActionResult<List<Order>>> Get()
         {
             try
             {
-                var products = await _product.Find(FilterDefinition<Product>.Empty).ToListAsync();
-                return Ok(products);
+                var orders = await _order.Find(FilterDefinition<Order>.Empty).ToListAsync();
+                return Ok(orders);
             }
             catch (Exception e)
             {
@@ -33,28 +33,28 @@ namespace minimalAPIMongo.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetById(string id)
+        public async Task<ActionResult<Order>> GetById(string id)
         {
             try
             {
-                var product = await _product.Find(x => x.Id == id).FirstOrDefaultAsync();
+                var order = await _order.Find(x => x.Id == id).FirstOrDefaultAsync();
                 //var filter = Builders<Product>.Filter.Eq(x => x.Id, id);
-                return product is not null ? Ok(product) : NotFound();
+                return order is not null ? Ok(order) : NotFound();
                 //return Ok(filter);
             }
             catch (Exception e)
             {
-                return BadRequest(e.Message);                
+                return BadRequest(e.Message);
             }
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post(Product product)
+        public async Task<ActionResult> Post(Order order)
         {
             try
             {
-                await _product.InsertOneAsync(product);
-                return StatusCode(201, product);
+                await _order.InsertOneAsync(order);
+                return StatusCode(201, order);
             }
             catch (Exception e)
             {
@@ -67,11 +67,11 @@ namespace minimalAPIMongo.Controllers
         {
             try
             {
-                var filter = Builders<Product>.Filter.Eq("Id", id);
-                
+                var filter = Builders<Order>.Filter.Eq("Id", id);
+
                 if (filter != null)
                 {
-                    await _product.DeleteOneAsync(filter);
+                    await _order.DeleteOneAsync(filter);
 
                     return Ok();
                 }
@@ -85,27 +85,27 @@ namespace minimalAPIMongo.Controllers
         }
 
         [HttpPut]
-        public async Task<ActionResult> Update(Product p)
+        public async Task<ActionResult> Update(Order o)
         {
             try
             {
                 //buscar por id
-                var filter = Builders<Product>.Filter.Eq(x => x.Id, p.Id);
+                var filter = Builders<Order>.Filter.Eq(x => x.Id, o.Id);
 
                 if (filter != null)
                 {
                     //substituindo o objeto buscado pelo novo objeto
-                    await _product.ReplaceOneAsync(filter,p);
+                    await _order.ReplaceOneAsync(filter, o);
 
                     return Ok();
                 }
 
                 return NotFound();
-              
+
             }
             catch (Exception)
             {
-                return BadRequest();                
+                return BadRequest();
             }
         }
     }
