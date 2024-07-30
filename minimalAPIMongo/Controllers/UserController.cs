@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using minimalAPIMongo.Domains;
 using minimalAPIMongo.Services;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace minimalAPIMongo.Controllers
@@ -37,7 +38,11 @@ namespace minimalAPIMongo.Controllers
         {
             try
             {
-                await _user.InsertOneAsync(user);
+                if (string.IsNullOrEmpty(user.Id))
+                {
+                    user.Id = ObjectId.GenerateNewId().ToString();
+                }
+                await _user.InsertOneAsync(user); ;
                 return StatusCode(201, user);
             }
             catch (Exception e)

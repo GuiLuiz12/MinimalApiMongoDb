@@ -7,7 +7,7 @@ namespace minimalAPIMongo.Domains
     {
         [BsonId]
         [BsonElement("_id"), BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [BsonElement("name")]
         public string? Name { get; set; }
@@ -18,6 +18,7 @@ namespace minimalAPIMongo.Domains
         [BsonElement("password")] 
         public string? Password { get; set; }
 
+        //[BsonElement("additionalAttributes")]
         public Dictionary<string, string> AdditionalAttributes { get; set; }
 
         public User()

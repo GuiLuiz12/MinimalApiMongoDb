@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using minimalAPIMongo.Domains;
 using minimalAPIMongo.Services;
+using minimalAPIMongo.ViewModels;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace minimalAPIMongo.Controllers
@@ -11,11 +13,15 @@ namespace minimalAPIMongo.Controllers
     [Produces("application/json")]
     public class OrderController : ControllerBase
     {
-        private readonly IMongoCollection<Order> _order;
+        private readonly IMongoCollection<Order>? _order;
+        private readonly IMongoCollection<Client>? _client;
+        private readonly IMongoCollection<Product>? _product;
 
         public OrderController(MongoDbService mongoDbService)
         {
             _order = mongoDbService.GetDatabase.GetCollection<Order>("order");
+            _client = mongoDbService.GetDatabase.GetCollection<Client>("client");
+            _product = mongoDbService.GetDatabase.GetCollection<Product>("product");
         }
 
         [HttpGet]
@@ -49,11 +55,30 @@ namespace minimalAPIMongo.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post(Order order)
+        public async Task<ActionResult<Order>> Create(OrderViewModel orderViewModel)
         {
             try
             {
-                await _order.InsertOneAsync(order);
+                Order order = new Order();
+
+                order.Id = orderViewModel.Id;
+                order.Date = orderViewModel.Date;
+                order.Status = orderViewModel.Status;
+                order.ProductId = orderViewModel.ProductId;
+                order.ClientId = orderViewModel.ClientId;
+                
+
+                var client = await _client.Find(x => x.Id == order.ClientId).FirstOrDefaultAsync();
+
+                if (client == null)
+                {
+                    return NotFound("Cliente não encontrado");
+                }
+
+                order.Client = client;
+
+                await _order!.InsertOneAsync(order);
+
                 return StatusCode(201, order);
             }
             catch (Exception e)

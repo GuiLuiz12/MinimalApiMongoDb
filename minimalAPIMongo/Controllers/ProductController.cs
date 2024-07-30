@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using minimalAPIMongo.Domains;
 using minimalAPIMongo.Services;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace minimalAPIMongo.Controllers
@@ -53,6 +54,10 @@ namespace minimalAPIMongo.Controllers
         {
             try
             {
+                if (string.IsNullOrEmpty(product.Id))
+                {
+                    product.Id = ObjectId.GenerateNewId().ToString();
+                }
                 await _product.InsertOneAsync(product);
                 return StatusCode(201, product);
             }
