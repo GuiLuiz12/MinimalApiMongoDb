@@ -30,6 +30,22 @@ namespace minimalAPIMongo.Controllers
             try
             {
                 var orders = await _order.Find(FilterDefinition<Order>.Empty).ToListAsync();
+
+                foreach (var order in orders)
+                {
+                    if (order.ProductId != null) 
+                    {
+                        var filter = Builders<Product>.Filter.In(p => p.Id, order.ProductId);
+
+                        order.Products = await _product.Find(filter).ToListAsync();
+                    }
+
+                    if (order.ClientId != null)
+                    {
+                        order.Client = await _client.Find(x => x.Id == order.ClientId).FirstOrDefaultAsync();
+                    }
+                }
+
                 return Ok(orders);
             }
             catch (Exception e)
@@ -44,9 +60,26 @@ namespace minimalAPIMongo.Controllers
             try
             {
                 var order = await _order.Find(x => x.Id == id).FirstOrDefaultAsync();
-                //var filter = Builders<Product>.Filter.Eq(x => x.Id, id);
-                return order is not null ? Ok(order) : NotFound();
-                //return Ok(filter);
+
+                if (order == null)
+                {
+                    return NotFound();
+                }
+
+                // Processar os produtos do pedido
+                if (order.ProductId != null)
+                {
+                    var filter = Builders<Product>.Filter.In(p => p.Id, order.ProductId);
+                    order.Products = await _product.Find(filter).ToListAsync();
+                }
+
+                // Processar o cliente do pedido
+                if (order.ClientId != null)
+                {
+                    order.Client = await _client.Find(x => x.Id == order.ClientId).FirstOrDefaultAsync();
+                }
+
+                return Ok(order);
             }
             catch (Exception e)
             {
